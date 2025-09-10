@@ -16,7 +16,6 @@ def split_nodes_link(old_nodes):
             new_nodes.append(old_node)
         else:
             matches = extract_markdown_links(old_node.text)
-            # text_to_split = old_node.text
             delimiters = []
             old_node_text_copy = old_node.text
             for alt_text, url in matches:
@@ -29,9 +28,12 @@ def split_nodes_link(old_nodes):
                 old_node_text_copy = text[1]
             if old_node_text_copy:
                 new_nodes.append(TextNode(old_node_text_copy, TextType.TEXT))
-            print(new_nodes)
-node = TextNode(
+    return new_nodes
+nodes = [TextNode(
     "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
-new_nodes = split_nodes_link([node])
+    TextType.TEXT),
+    TextNode("This is text with a `code block` word", TextType.TEXT),
+    TextNode("and this is some bold text", TextType.BOLD)
+]
+old_nodes = split_nodes_link(nodes)
+print(old_nodes)

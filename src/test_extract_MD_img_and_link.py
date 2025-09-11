@@ -1,6 +1,6 @@
 import unittest
 from textnode import TextNode, TextType
-from extract_MD_img_and_link import extract_markdown_images, extract_markdown_links, split_nodes_link
+from extract_MD_img_and_link import extract_markdown_images, extract_markdown_links, split_nodes_link, split_nodes_img
 
 class test_Extract_img_and_link_regexes(unittest.TestCase):
     def test_extract_markdown_images(self):
@@ -26,3 +26,17 @@ class test_Extract_img_and_link_regexes(unittest.TestCase):
             TextNode("This is text with a `code block` word", TextType.TEXT),
             TextNode("and this is some bold text", TextType.BOLD)
         ])
+
+    def test_split_image_nodes(self):
+        nodes = [TextNode(
+        "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+        TextType.TEXT,
+    ),
+    TextNode("and here's some italicised text", TextType.ITALIC)
+]
+        self.assertEqual(split_nodes_img(nodes), [
+            TextNode("This is text with an ", TextType.TEXT), 
+            TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+            TextNode(" and another ", TextType.TEXT),
+            TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+            TextNode("and here's some italicised text", TextType.ITALIC)])

@@ -1,13 +1,13 @@
 import unittest
+from textnode import TextNode, TextType
 from inline_markdown import (
     split_nodes_delimiter, 
     split_nodes_img, 
     split_nodes_link, 
     extract_markdown_links, 
-    extract_markdown_images
+    extract_markdown_images,
+    text_to_textnodes
 )
-
-from textnode import TextNode, TextType
 
 class testSplitNodesDelimiter(unittest.TestCase):
     def test_split_nodes_delimiter(self):
@@ -35,6 +35,7 @@ class test_Extract_img_and_link_regexes(unittest.TestCase):
         text = extract_markdown_links("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)")
         self.assertEqual(text, [('to boot dev', 'https://www.boot.dev'), ('to youtube', 'https://www.youtube.com/@bootdotdev')])
     
+class test_links_and_images(unittest.TestCase):
     def test_split_link_nodes(self):
         nodes = [TextNode(
     "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
@@ -64,3 +65,27 @@ class test_Extract_img_and_link_regexes(unittest.TestCase):
             TextNode(" and another ", TextType.TEXT),
             TextNode("second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
             TextNode("and here's some italicised text", TextType.ITALIC)])
+        
+class test_text_to_textnodes(unittest.TestCase):
+    def test_text_to_textnodes_all(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        self.assertEqual(text_to_textnodes(text),
+            [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT,),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev")
+            ])
+        
+    def test_text_to_textnodes_one_node(self):
+        text = "[this is a google link](https://google.com)"
+        self.assertEqual(text_to_textnodes(text), 
+            [
+                TextNode("this is a google link", TextType.LINK, "https://google.com")
+            ])

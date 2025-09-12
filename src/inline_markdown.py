@@ -1,5 +1,5 @@
 from textnode import TextNode, TextType
-import re
+import re, pprint
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
     new_nodes = []
@@ -20,7 +20,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 node = TextNode(sections[i], text_type)
             split_nodes.append(node)
         new_nodes.extend(split_nodes)
-        return new_nodes
+    return new_nodes
     
 def split_nodes_link(old_nodes):
     new_nodes = []
@@ -78,20 +78,16 @@ def extract_markdown_links(text):
     matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
     return matches
 
-# nodes = [TextNode(
-#     "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-#     TextType.TEXT),
-#     TextNode("This is text with a `code block` word", TextType.TEXT),
-#     TextNode("and this is some bold text", TextType.BOLD)
-# ]
-# old_nodes = split_nodes_link(nodes)
-# print(old_nodes)
+def text_to_textnodes(text):
+    nodes = [TextNode(text, TextType.TEXT)]
+    for text_type in [TextType.BOLD, TextType.ITALIC, TextType.CODE]:
+        nodes = split_nodes_delimiter(nodes, text_type.value, text_type)
+    nodes = split_nodes_link(split_nodes_img(nodes))
+    return nodes
 
-# nodes = [TextNode(
-#         "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
-#         TextType.TEXT,
-#     ),
-#     TextNode("and here's some italicised text", TextType.ITALIC)
-# ]
-# old_nodes = split_nodes_img(nodes)
- 
+
+# textnodes = text_to_textnodes("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")
+# pprint.pprint(textnodes)
+
+# textnodes = text_to_textnodes("[this is a google link](https://google.com)")
+# pprint.pprint(textnodes)

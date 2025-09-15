@@ -46,15 +46,23 @@ def block_to_block_type(markdown_block):
 def text_to_children(block, blocktype):
     match blocktype:
         case Blocktype.PARAGRAPH:
+            html_nodes = []
             for line in block.split("\n"):
                 text_nodes = text_to_textnodes(line)
-                html_nodes = []
                 for node in text_nodes:
                     html_node = text_node_to_html_node(node)
                     html_nodes.append(html_node)
-                print(html_nodes)
+            return html_nodes #TODO this doesnt add the line break to 
+        # the html string. line break should be <br> and only goes at the 
+        # end of each line, not beginning and end like many other 
+        # html nodes. i have a fix for this but im not implementing it 
+        # yet because it requires me to change the Leafnode class, which 
+        # would make it different to the lessons solution. consider 
+        # changing it after. i have saved the solution in a file 
+        # called "return_to_later/FIX_FOR_Leafnode.py" in the root of the project
 
         case Blocktype.HEADING:
+            #TODO up to here
             pass
         case Blocktype.CODE:
             pass
@@ -75,7 +83,8 @@ def markdown_to_html(markdown):
         match block_type:
             case Blocktype.PARAGRAPH:
                 child_nodes = text_to_children(block, block_type)
-                parent_node = ParentNode("<p>", [block])
+                parent_node = ParentNode("p", child_nodes)
+                
             case Blocktype.HEADING:
                 level = 0
                 for i in block[:6]:
@@ -108,4 +117,4 @@ def markdown_to_html(markdown):
 # html_nodes = markdown_to_html(md)
 # print(html_nodes)
 
-text_to_children("this is the first line with _italics_ in it\n this is the second line\n and here is some **bolded text** in the 3rd line", Blocktype.PARAGRAPH)
+text_to_children("this is the first line with _italics_ in it\nthis is the second line\nand here is some **bolded text** in the 3rd line", Blocktype.PARAGRAPH)

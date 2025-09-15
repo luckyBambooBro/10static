@@ -62,8 +62,11 @@ def text_to_children(block, blocktype):
         # called "return_to_later/FIX_FOR_Leafnode.py" in the root of the project
 
         case Blocktype.HEADING:
-            #TODO up to here
-            pass
+            text_nodes = text_to_textnodes(block)
+            html_nodes = []
+            for node in text_nodes:
+                html_nodes.append(text_node_to_html_node(node))
+            return html_nodes
         case Blocktype.CODE:
             pass
         case Blocktype.QUOTE:
@@ -80,6 +83,7 @@ def markdown_to_html(markdown):
     blocks_w_tags = []
     for block in blocks:
         block_type = block_to_block_type(block)
+
         match block_type:
             case Blocktype.PARAGRAPH:
                 child_nodes = text_to_children(block, block_type)
@@ -92,11 +96,22 @@ def markdown_to_html(markdown):
                         level += 1
                 if not 1 <= level <= 6:
                     raise ValueError("Heading must be between <h1> to <h6>")
-                parent_node = ParentNode(f"h{level}", block[level + 1:])
+                child_nodes = text_to_children(block[level + 1: ], block_type)
+                parent_node = ParentNode(f"h{level}", child_nodes)
+                return parent_node
+
             case Blocktype.CODE:
-                parent_node = ParentNode("<code>", block.strip("```"))
+                #TODO up to here!
+                child_nodes = text_to_children(block.strip("```"), block_type)
+                parent_node = ParentNode("code", )
+
             case Blocktype.QUOTE:
-                parent_node = ParentNode("<blockquote>", block)
+                child_nodes = text_to_children() #incomplete
+                parent_node = ParentNode("blockquote", child_nodes)
+
+            case Blocktype.UNORDERED_LIST:
+                child_nodes = text_to_children() #incomplete
+                parent_node = ParentNode("ul", child_nodes)
                            
 
 # md = """
@@ -117,4 +132,8 @@ def markdown_to_html(markdown):
 # html_nodes = markdown_to_html(md)
 # print(html_nodes)
 
-text_to_children("this is the first line with _italics_ in it\nthis is the second line\nand here is some **bolded text** in the 3rd line", Blocktype.PARAGRAPH)
+# testing for Blocktype.PARAGRAPH
+# text_to_children("this is the first line with _italics_ in it\nthis is the second line\nand here is some **bolded text** in the 3rd line", Blocktype.PARAGRAPH)
+
+#testing for Blocktype.HEADING
+markdown_to_html("### this is a level 3 title\nblah text whatever **bold** _italic_ regular")

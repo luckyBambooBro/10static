@@ -83,7 +83,7 @@ def text_to_textnodes(text):
     for text_type in [TextType.BOLD, TextType.ITALIC, TextType.CODE]:
         nodes = split_nodes_delimiter(nodes, text_type.value, text_type)
     nodes = split_nodes_link(split_nodes_img(nodes))
-    return nodes
+    return nodes #returns a list of TextNodes
 
 
 # textnodes = text_to_textnodes("This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)")

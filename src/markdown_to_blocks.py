@@ -25,9 +25,6 @@ def block_to_block_type(markdown_block):
     if len(lines) > 1 and lines[0].startswith("```") and lines[-1].startswith("```"):
         return Blocktype.CODE
     if markdown_block.startswith(">"):
-        for line in lines:
-            if not line.startswith(">"):
-                return Blocktype.PARAGRAPH
         return Blocktype.QUOTE
     if markdown_block.startswith("- "):
         for line in lines:
@@ -50,8 +47,7 @@ def text_to_children(block, blocktype):
             for line in block.split("\n"):
                 text_nodes = text_to_textnodes(line)
                 for node in text_nodes:
-                    html_node = text_node_to_html_node(node)
-                    html_nodes.append(html_node)
+                    html_nodes.append(text_node_to_html_node(node))
             return html_nodes #TODO this doesnt add the line break to 
         # the html string. line break should be <br> and only goes at the 
         # end of each line, not beginning and end like many other 
@@ -64,13 +60,21 @@ def text_to_children(block, blocktype):
         case Blocktype.HEADING:
             text_nodes = text_to_textnodes(block)
             html_nodes = []
-            for node in text_nodes:
-                html_nodes.append(text_node_to_html_node(node))
+            for text_node in text_nodes:
+                html_nodes.append(text_node_to_html_node(text_node))
             return html_nodes
         case Blocktype.CODE:
-            pass
+            text_nodes = text_to_textnodes(block)
+            html_nodes = []
+            for text_node in text_nodes:
+                html_nodes.append(text_node_to_html_node(text_node))
+            return html_nodes
         case Blocktype.QUOTE:
-            pass
+            text_nodes = text_to_textnodes(block)
+            html_nodes = []
+            for text_node in text_nodes:
+                html_nodes.append(text_node_to_html_node(text_node))
+            return html_nodes
         case Blocktype.UNORDERED_LIST:
             pass
         case Blocktype.ORDERED_LIST:
@@ -80,13 +84,11 @@ def text_to_children(block, blocktype):
 
 def markdown_to_html(markdown):
     blocks = markdown_to_blocks(markdown)
-    blocks_w_tags = []
     for block in blocks:
         block_type = block_to_block_type(block)
-
         match block_type:
             case Blocktype.PARAGRAPH:
-                child_nodes = text_to_children(block, block_type)
+                child_nodes = text_to_children(block, Blocktype.PARAGRAPH)
                 parent_node = ParentNode("p", child_nodes)
                 
             case Blocktype.HEADING:
@@ -96,23 +98,32 @@ def markdown_to_html(markdown):
                         level += 1
                 if not 1 <= level <= 6:
                     raise ValueError("Heading must be between <h1> to <h6>")
-                child_nodes = text_to_children(block[level + 1: ], block_type)
+                child_nodes = text_to_children(block[level + 1: ], Blocktype.HEADING)
                 parent_node = ParentNode(f"h{level}", child_nodes)
                 return parent_node
 
             case Blocktype.CODE:
-                #TODO up to here!
-                child_nodes = text_to_children(block.strip("```"), block_type)
-                parent_node = ParentNode("code", )
+                block = block.strip("```")
+                block = block.strip("\n")
+                child_nodes = text_to_children(block, Blocktype.CODE)
+                parent_node = ParentNode("code", child_nodes)
+                return parent_node
 
             case Blocktype.QUOTE:
-                child_nodes = text_to_children() #incomplete
+                block = block.strip(">")
+                child_nodes = text_to_children(block, Blocktype.QUOTE) 
                 parent_node = ParentNode("blockquote", child_nodes)
+                print(parent_node.to_html())
+                return parent_node
 
             case Blocktype.UNORDERED_LIST:
-                child_nodes = text_to_children() #incomplete
+                #TODO UP TO HERE
+                child_nodes = text_to_children(block, Blocktype.UNORDERED_LIST) #incomplete
                 parent_node = ParentNode("ul", child_nodes)
                            
+            case Blocktype.ORDERED_LIST:
+                child_nodes = text_to_children(block, Blocktype.ORDERED_LIST) #incomplete
+                parent_node = ParentNode("ol", child_nodes)
 
 # md = """
 # #### Firstly here is a <h4> heading
@@ -136,4 +147,4 @@ def markdown_to_html(markdown):
 # text_to_children("this is the first line with _italics_ in it\nthis is the second line\nand here is some **bolded text** in the 3rd line", Blocktype.PARAGRAPH)
 
 #testing for Blocktype.HEADING
-markdown_to_html("### this is a level 3 title\nblah text whatever **bold** _italic_ regular")
+markdown_to_html("> this is a blockquote. lorem ipsum print('this')\n quote continues\nmore text")

@@ -7,25 +7,19 @@ from markdown_to_blocks import (
     block_to_block_type, 
     Blocktype
 )
-
+import pprint
 
 def text_to_children(block, blocktype):
     match blocktype:
         case Blocktype.PARAGRAPH:
+            text_nodes = []
             html_nodes = []
             for line in block.split("\n"):
-                text_nodes = text_to_textnodes(line)
-                for node in text_nodes:
-                    html_nodes.append(text_node_to_html_node(node))
-            return html_nodes #TODO this doesnt add the line break to 
-        # the html string. line break should be <br> and only goes at the 
-        # end of each line, not beginning and end like many other 
-        # html nodes. i have a fix for this but im not implementing it 
-        # yet because it requires me to change the Leafnode class, which 
-        # would make it different to the lessons solution. consider 
-        # changing it after. i have saved the solution in a file 
-        # called "return_to_later/FIX_FOR_Leafnode.py" in the root of the project
-
+                text_nodes.extend(text_to_textnodes(line + "<br>"))    
+            for text_node in text_nodes:
+                html_nodes.append(text_node_to_html_node(text_node))
+            return html_nodes
+     
         case Blocktype.HEADING:
             text_nodes = text_to_textnodes(block)
             html_nodes = []
@@ -73,12 +67,14 @@ def text_to_children(block, blocktype):
 
 def markdown_to_html(markdown):
     blocks = markdown_to_blocks(markdown)
+    parent_nodes = []
     for block in blocks:
         block_type = block_to_block_type(block)
         match block_type:
             case Blocktype.PARAGRAPH:
                 child_nodes = text_to_children(block, Blocktype.PARAGRAPH)
                 parent_node = ParentNode("p", child_nodes)
+                parent_nodes.append(parent_node)
                 
             case Blocktype.HEADING:
                 level = 0
@@ -89,30 +85,38 @@ def markdown_to_html(markdown):
                     raise ValueError("Heading must be between <h1> to <h6>")
                 child_nodes = text_to_children(block[level + 1: ], Blocktype.HEADING)
                 parent_node = ParentNode(f"h{level}", child_nodes)
-                return parent_node
+                parent_nodes.append(parent_node)
 
             case Blocktype.CODE:
                 block = block.strip("```")
                 block = block.strip("\n")
                 child_nodes = text_to_children(block, Blocktype.CODE)
                 parent_node = ParentNode("code", child_nodes)
-                return parent_node
+                parent_nodes.append(parent_node)
 
             case Blocktype.QUOTE:
                 block = block.strip(">")
                 child_nodes = text_to_children(block, Blocktype.QUOTE) 
                 parent_node = ParentNode("blockquote", child_nodes)
-                return parent_node
+                parent_nodes.append(parent_node)
 
             case Blocktype.UNORDERED_LIST:
-                child_nodes = text_to_children(block, Blocktype.UNORDERED_LIST) #incomplete
+                child_nodes = text_to_children(block, Blocktype.UNORDERED_LIST) 
                 parent_node = ParentNode("ul", child_nodes)
-                return parent_node
+                parent_nodes.append(parent_node)
                            
             case Blocktype.ORDERED_LIST:
-                child_nodes = text_to_children(block, Blocktype.ORDERED_LIST) #incomplete
+                child_nodes = text_to_children(block, Blocktype.ORDERED_LIST) 
                 parent_node = ParentNode("ol", child_nodes)
-                return parent_node
+                parent_nodes.append(parent_node)
+    root_parent_node = ParentNode("div", parent_nodes)
+    return root_parent_node
 
-md_text = markdown_to_html("1. tim tams\n2. boost\n3. honey **soy** chicken")
+
+#TODO: nothing to do just letting myself know this is the test below
+md_text = markdown_to_html("- paragraph lorem ipsum\n- more random text\n- blah blah blah\n\n# new heading 1\n\n###### new heading 6\n\n" \
+"####### tried 7 #'s for heading so should be a paragraph\n\n- tim tams\n- boost\n\nnew line of text\n\n" \
+"1. tim tams\n2. boost\n\n```code\nmore code\nend code\n```\n\n>quote\nmore text in quote but no > so should be paragraph?\n\n" \
+"> proper quote here maybe\n> more quote i hope\n> cos im including the >\n\nactually both the quotes should work but the 2nd one should" \
+"have > in every line")
 print(md_text.to_html())

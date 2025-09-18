@@ -1,7 +1,7 @@
 from enum import Enum
 from htmlnode import ParentNode, LeafNode 
 from inline_markdown import text_to_textnodes
-from textnode import text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node
 from markdown_to_blocks import (
     markdown_to_blocks, 
     block_to_block_type, 
@@ -16,9 +16,12 @@ def text_to_children(block, blocktype):
             return [text_node_to_html_node(text_node) for text_node in text_nodes]
     
     match blocktype:
-        case Blocktype.PARAGRAPH | Blocktype.HEADING | Blocktype.CODE | Blocktype.QUOTE:
+        case Blocktype.PARAGRAPH | Blocktype.HEADING | Blocktype.QUOTE:
             text_nodes = text_to_textnodes(block)
             return [text_node_to_html_node(text_node) for text_node in text_nodes] 
+        
+        case Blocktype.CODE:
+            return [text_node_to_html_node(TextNode(block, TextType.CODE))]
 
         case Blocktype.UNORDERED_LIST:
             reformatted_list = [text.replace("- ", "<li>") + "</li>" for text in block.split("\n")]
@@ -33,13 +36,14 @@ def text_to_children(block, blocktype):
 
 
 
-def markdown_to_html(markdown):
+def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
     parent_nodes = []
     for block in blocks:
         block_type = block_to_block_type(block)
         match block_type:
             case Blocktype.PARAGRAPH:
+                block = block.replace("\n", "")
                 child_nodes = text_to_children(block, Blocktype.PARAGRAPH)
                 parent_node = ParentNode("p", child_nodes)
                 parent_nodes.append(parent_node)
@@ -57,9 +61,9 @@ def markdown_to_html(markdown):
 
             case Blocktype.CODE:
                 block = block.strip("```")
-                block = block.strip("\n")
+                block = block.lstrip("\n")
                 child_nodes = text_to_children(block, Blocktype.CODE)
-                parent_node = ParentNode("code", child_nodes)
+                parent_node = ParentNode("pre", child_nodes)
                 parent_nodes.append(parent_node)
 
             case Blocktype.QUOTE:
@@ -82,9 +86,28 @@ def markdown_to_html(markdown):
 
 
 #TODO: nothing to do just letting myself know this is the test below
-md_text = markdown_to_html("- paragraph lorem ipsum\n- more random text\n- blah blah blah\n\n# new heading 1\n\n###### new heading 6\n\n" \
-"####### tried 7 #'s for heading so should be a paragraph\n\n- tim tams\n- boost\n\nnew line of text\n\n" \
-"1. tim tams\n2. boost\n\n```code\nmore code\nend code\n```\n\n>quote\nmore text in quote but no > so should be paragraph?\n\n" \
-"> proper quote here maybe\n> more quote i hope\n> cos im including the >\n\nactually both the quotes should work but the 2nd one should" \
-"have > in every line")
-print(md_text.to_html())
+# md_text = markdown_to_html_node("- paragraph lorem ipsum\n- more random text\n- blah blah blah\n\n# new heading 1\n\n###### new heading 6\n\n" \
+# "####### tried 7 #'s for heading so should be a paragraph\n\n- tim tams\n- boost\n\nnew line of text\n\n" \
+# "1. tim tams\n2. boost\n\n```code\nmore code\nend code\n```\n\n>quote\nmore text in quote but no > so should be paragraph?\n\n" \
+# "> proper quote here maybe\n> more quote i hope\n> cos im including the >\n\nactually both the quotes should work but the 2nd one should" \
+# "have > in every line")
+# print(md_text.to_html())
+
+
+# print(("""
+# This is **bolded** paragraph
+# text in a p
+# tag here
+
+# This is another paragraph with _italic_ text and `code` here
+
+# """))
+md_text = markdown_to_html_node("""
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+""")
+# print(md_text.to_html())

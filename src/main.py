@@ -7,57 +7,27 @@ from markdown_to_blocks import (
     block_to_block_type, 
     Blocktype
 )
-import pprint
 
 def text_to_children(block, blocktype):
+    def list_processor(reformatted_list):
+            text_nodes = []
+            for text in reformatted_list:
+                text_nodes.extend(text_to_textnodes(text))
+            return [text_node_to_html_node(text_node) for text_node in text_nodes]
+    
     match blocktype:
-        case Blocktype.PARAGRAPH:
+        case Blocktype.PARAGRAPH | Blocktype.HEADING | Blocktype.CODE | Blocktype.QUOTE:
             text_nodes = text_to_textnodes(block)
-            html_nodes = [] 
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
-     
-        case Blocktype.HEADING:
-            text_nodes = text_to_textnodes(block)
-            html_nodes = []
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
-        case Blocktype.CODE:
-            text_nodes = text_to_textnodes(block)
-            html_nodes = []
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
-        case Blocktype.QUOTE:
-            text_nodes = text_to_textnodes(block)
-            html_nodes = []
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
+            return [text_node_to_html_node(text_node) for text_node in text_nodes] 
+
         case Blocktype.UNORDERED_LIST:
-            reformatted_list = []
-            for text in block.split("\n"):
-                reformatted_list.append(text.replace("- ", "<li>") + "</li>")
-            text_nodes = []
-            html_nodes = []
-            for text in reformatted_list:
-                text_nodes.extend(text_to_textnodes(text))
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
+            reformatted_list = [text.replace("- ", "<li>") + "</li>" for text in block.split("\n")]
+            return list_processor(reformatted_list)
+        
         case Blocktype.ORDERED_LIST:
-            reformatted_list = []
-            for text in block.split("\n"):
-                reformatted_list.append("<li>" + text[3:] + "</li>")
-            text_nodes = []
-            html_nodes = []
-            for text in reformatted_list:
-                text_nodes.extend(text_to_textnodes(text))
-            for text_node in text_nodes:
-                html_nodes.append(text_node_to_html_node(text_node))
-            return html_nodes
+            reformatted_list = ["<li>" + text[3:] + "</li>" for text in block.split("\n")]
+            return list_processor(reformatted_list)
+
         case _:
             raise TypeError("blocktype must be a Blocktype class object")
 

@@ -12,10 +12,8 @@ import pprint
 def text_to_children(block, blocktype):
     match blocktype:
         case Blocktype.PARAGRAPH:
-            text_nodes = []
-            html_nodes = []
-            for line in block.split("\n"):
-                text_nodes.extend(text_to_textnodes(line + "<br>"))    
+            text_nodes = text_to_textnodes(block)
+            html_nodes = [] 
             for text_node in text_nodes:
                 html_nodes.append(text_node_to_html_node(text_node))
             return html_nodes

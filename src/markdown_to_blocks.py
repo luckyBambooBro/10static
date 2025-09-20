@@ -8,8 +8,8 @@ class Blocktype(Enum):
     HEADING = "heading"
     CODE = "code"
     QUOTE = "quote"
-    UNORDERED_LIST = "unordered_list"
-    ORDERED_LIST = "ordered_list"
+    O_LIST = "unordered_list"
+    U_LIST = "ordered_list"
     
 def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")
@@ -30,100 +30,87 @@ def block_to_block_type(markdown_block):
         for line in lines:
             if not line.startswith("- "):
                 return Blocktype.PARAGRAPH
-        return Blocktype.UNORDERED_LIST
+        return Blocktype.U_LIST
     if markdown_block.startswith("1. "):
         counter = 1
         for line in lines:
             if not line.startswith(f"{counter}. "):
                 return Blocktype.PARAGRAPH
             counter += 1
-        return Blocktype.ORDERED_LIST
+        return Blocktype.O_LIST
     return Blocktype.PARAGRAPH
-
-def text_to_children(block, blocktype):
-    def list_processor(reformatted_list):
-            text_nodes = []
-            for text in reformatted_list:
-                text_nodes.extend(text_to_textnodes(text))
-            return [text_node_to_html_node(text_node) for text_node in text_nodes]
-    
-    match blocktype:
-        case Blocktype.PARAGRAPH | Blocktype.HEADING | Blocktype.QUOTE:
-            text_nodes = text_to_textnodes(block)
-            return [text_node_to_html_node(text_node) for text_node in text_nodes] 
-        
-        case Blocktype.CODE:
-            return [text_node_to_html_node(TextNode(block, TextType.CODE))]
-
-        case Blocktype.UNORDERED_LIST:
-            reformatted_list = [text.replace("- ", "<li>") + "</li>" for text in block.split("\n")]
-            return list_processor(reformatted_list)
-        
-        case Blocktype.ORDERED_LIST:
-            reformatted_list = ["<li>" + text[3:] + "</li>" for text in block.split("\n")]
-            return list_processor(reformatted_list)
-
-        case _:
-            raise TypeError("blocktype must be a Blocktype class object")
-
-
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
-    parent_nodes = []
-    for block in blocks:
-        block_type = block_to_block_type(block)
-        match block_type:
-            case Blocktype.PARAGRAPH:
-                block = block.replace("\n", "")
-                child_nodes = text_to_children(block, Blocktype.PARAGRAPH)
-                parent_node = ParentNode("p", child_nodes)
-                parent_nodes.append(parent_node)
-                
-            case Blocktype.HEADING:
-                level = 0
-                for i in block[:6]:
-                    if i == "#":
-                        level += 1
-                if not 1 <= level <= 6:
-                    raise ValueError("Heading must be between <h1> to <h6>")
-                child_nodes = text_to_children(block[level + 1: ], Blocktype.HEADING)
-                parent_node = ParentNode(f"h{level}", child_nodes)
-                parent_nodes.append(parent_node)
+    children = [block_to_html_node(block) for block in blocks]
+    return ParentNode("div", children, None)
 
-            case Blocktype.CODE:
-                block = block.strip("```")
-                block = block.lstrip("\n")
-                child_nodes = text_to_children(block, Blocktype.CODE)
-                parent_node = ParentNode("pre", child_nodes)
-                parent_nodes.append(parent_node)
+def block_to_html_node(block):
+    block_type = block_to_block_type(block)
+    match block_type:
+        case Blocktype.PARAGRAPH:
+            return paragraph_to_html_node(block)
+        case Blocktype.HEADING:
+            return heading_to_html_node(block)
+        case Blocktype.CODE:
+            return code_to_html_node(block)
+        case Blocktype.O_LIST:
+            return o_list_to_html_node(block)
+        case Blocktype.U_LIST:
+            return u_list_to_html_node(block)
+        case Blocktype.QUOTE:
+            return quote_to_html_node(block)
+        case _:
+            raise ValueError("invalid block type")
 
-            case Blocktype.QUOTE:
-                block = block.strip(">")
-                child_nodes = text_to_children(block, Blocktype.QUOTE) 
-                parent_node = ParentNode("blockquote", child_nodes)
-                parent_nodes.append(parent_node)
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    return [text_node_to_html_node(text_node) for text_node in text_nodes]
 
-            case Blocktype.UNORDERED_LIST:
-                child_nodes = text_to_children(block, Blocktype.UNORDERED_LIST) 
-                parent_node = ParentNode("ul", child_nodes)
-                parent_nodes.append(parent_node)
-                           
-            case Blocktype.ORDERED_LIST:
-                child_nodes = text_to_children(block, Blocktype.ORDERED_LIST) 
-                parent_node = ParentNode("ol", child_nodes)
-                parent_nodes.append(parent_node)
-    root_parent_node = ParentNode("div", parent_nodes)
-    return root_parent_node
+def paragraph_to_html_node(block):
+    text = " ".join(block.split("\n"))
+    children = text_to_children(text)
+    return ParentNode("p", children)
 
+def heading_to_html_node(block):
+    level = 0
+    for char in block:
+        if char == "#":
+            level += 1
+        else:
+            break
+    if level + 1 >= len(block):
+        raise ValueError(f"invalid heading level: {level}") #blocks against empty headings, cos if they entered "# ", it would actually work
+    text = block[level + 1:]
+    children = text_to_children(text)
+    return ParentNode(f"h{level}", children)
 
+def code_to_html_node(block): #TODO: this is different to the lessons solution and is to be tested. Boots tested it and said it was ok though
+    if not block.startswith("```") or not block.endswith("```"):
+        raise ValueError("invalid code block")
+    text = block[4:-3]
+    raw_text_node = TextNode(text, TextType.CODE)
+    child = text_node_to_html_node(raw_text_node)
+    return ParentNode("pre", [child])
 
-md_text = markdown_to_html_node("""
-This is **bolded** paragraph
-text in a p
-tag here
+def o_list_to_html_node(block):
+    list_items = block.split("\n")
+    text_items = [item[3:] for item in list_items]
+    children = [ParentNode("li", text_to_children(text_item)) for text_item in text_items]
+    return ParentNode("ol", children)
 
-This is another paragraph with _italic_ text and `code` here
+def u_list_to_html_node(block):
+    list_items = block.split("\n")
+    text_items = [item[2:] for item in list_items]
+    children = [ParentNode("li", text_to_children(text_item)) for text_item in text_items]
+    return ParentNode("ul", children)
 
-""")
-# print(md_text.to_html())
+def quote_to_html_node(block):
+    lines = block.split("\n")
+    for line in lines:
+        if not line.startswith(">"):
+            raise ValueError("invalid quote block")
+    new_lines = [line.lstrip(">").strip() for line in lines]
+    content = " ".join(new_lines)
+    children = text_to_children(content)
+    return ParentNode("blockquote", children)

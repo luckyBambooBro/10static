@@ -1,20 +1,24 @@
 import os, pprint, shutil
 
-source = "static"
-dest = "public"
+src = "static"
+dst = "public"
 
-def copy_contents(source, dest, paths=[]):
-    shutil.rmtree(os.path.abspath(dest))
-    os.mkdir(dest)
-    
-    for item in os.listdir(source):
-        #TODO up to here but this is a good start
-        if os.path.isfilepath(item):
-            paths.append(item)
-        else:
-            if not os.path.exists(item):
-                os.mkdir(os.path.join(dest, item))
-                #   TODO continue
+def copy_src_to_dst(src, dst):
+    def copy_contents(src, dst):
+        for item in os.listdir(src):
+            item_path = os.path.join(src,item)
+            if os.path.isfile(item_path):
+                shutil.copy(item_path, dst)
+            else:
+                src_subdir_path = os.path.join(src,item)
+                dst_subdir_path = os.path.join(dst,item)
+                if not os.path.exists(dst_subdir_path):
+                    os.mkdir(dst_subdir_path)
+                copy_contents(src_subdir_path, dst_subdir_path)
 
+    shutil.rmtree(os.path.abspath(dst))
+    os.mkdir(dst)
+    copy_contents(src, dst)
 
-copy_contents(source, dest)
+copy_src_to_dst(src, dst)
+

@@ -9,6 +9,8 @@ def extract_title(markdown):
     title = markdown.split("# ")[1]
     title = title.split("\n\n")[0]
     return title
+
+def generate_page(from_path, template_path, dest_path):
     
 
 extract_title("# Hello")

@@ -5,8 +5,9 @@ from generate_page import extract_title, generate_page
 
 src = "./static"
 dst = "./public"
-
-extract_title("# Hello")
+generate_page_src = "./content/index.md"
+html_template = "./template.html"
+generate_page_dst = "./public/index.html"
 
 if __name__ == "__main__":
     print(f"deleting {dst} directory...")
@@ -16,5 +17,5 @@ if __name__ == "__main__":
     print(f"copying {src} --> {dst}")
     copy_src_to_dst(src, dst)
 
-    generate_page("./content/index.md", "./template.html", "./public")
+    generate_page(generate_page_src, html_template, generate_page_dst)
 

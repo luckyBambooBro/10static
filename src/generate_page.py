@@ -19,7 +19,7 @@ def generate_page(from_path, template_path, dst_path):
         "{{ Title }}", extract_title(md_text_str)).replace(
         "{{ Content }}", html_str)
 
-    with open(os.path.join(dst_path, "html_page.html"), "w") as html_f:
+    with open(dst_path, "w") as html_f:
         html_file = html_f.write(html_contents)
         print("...")
         print(f"{from_path} successfully written to {dst_path} ")

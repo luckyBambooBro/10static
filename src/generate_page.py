@@ -20,7 +20,10 @@ def generate_page(from_path, template_path, dst_path):
         "{{ Content }}", html_str)
 
     with open(dst_path, "w") as html_f:
-        html_file = html_f.write(html_contents)
+        dir_path = os.path.dirname(dst_path)
+        if dir_path != "":
+            os.makedirs(dir_path, exist_ok=True)
+        html_f.write(html_contents)
         print("...")
         print(f"{from_path} successfully written to {dst_path} ")
 

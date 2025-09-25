@@ -6,7 +6,7 @@ from generate_page import extract_title, generate_page
 src = "./static"
 dst = "./public"
 generate_page_src = "./content/index.md"
-html_template = "./template.html"
+template_path = "./template.html"
 generate_page_dst = "./public/index.html"
 
 if __name__ == "__main__":
@@ -17,5 +17,5 @@ if __name__ == "__main__":
     print(f"copying {src} --> {dst}")
     copy_src_to_dst(src, dst)
 
-    generate_page(generate_page_src, html_template, generate_page_dst)
+    generate_page(generate_page_src, template_path, generate_page_dst)
 

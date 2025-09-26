@@ -19,12 +19,38 @@ def generate_page(from_path, template_path, dst_path):
         "{{ Title }}", extract_title(md_text_str)).replace(
         "{{ Content }}", html_str)
 
-    with open(dst_path, "w") as html_f:
-        dir_path = os.path.dirname(dst_path)
-        if dir_path != "":
-            os.makedirs(dir_path, exist_ok=True)
-        html_f.write(html_contents)
-        print("...")
-        print(f"{from_path} successfully written to {dst_path} ")
+    if from_path.endswith("md"):
+        dst_path = dst_path.replace(".md", ".html")
+        with open(dst_path, "w") as html_f:
+            dir_path = os.path.dirname(dst_path)
+            if dir_path != "":
+                os.makedirs(dir_path, exist_ok=True)
+            html_f.write(html_contents)
+            print("...")
+            print(f"{from_path} successfully written to {dst_path} ")
+
+    else:
+        with open(dst_path, "w") as html_f:
+            dir_path = os.path.dirname(dst_path)
+            if dir_path != "":
+                os.makedirs(dir_path, exist_ok=True)
+            html_f.write(html_contents)
+            print("...")
+            print(f"{from_path} successfully written to {dst_path} ")
 
 
+def generate_pages_recursive(dir_path_content, template_path, dst_path):
+    for path in os.listdir(dir_path_content):
+        if os.path.isfile(os.path.join(dir_path_content, path)):
+            #TODO unsure if following 2 lines needed
+            if not os.path.exists(dst_path):
+                os.makedirs(dst_path)
+            generate_page(
+                os.path.join(dir_path_content, path),
+                template_path, 
+                os.path.join(dst_path, path))
+        else:
+            generate_pages_recursive(
+                os.path.join(dir_path_content, path), 
+                template_path, 
+                os.path.join(dst_path, path))

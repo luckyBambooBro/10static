@@ -1,7 +1,6 @@
 import os, shutil
 from copy_static import copy_src_to_dst
-from markdown_to_blocks import markdown_to_html_node
-from generate_page import extract_title, generate_page, generate_pages_recursive
+from generate_page import generate_pages_recursive
 
 src = "./static"
 dst = "./public"

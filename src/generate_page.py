@@ -19,12 +19,10 @@ def generate_page(from_path, template_path, dst_path):
         "{{ Title }}", extract_title(md_text_str)).replace(
         "{{ Content }}", html_str)
 
-    dst_path = pathlib.Path(dst_path)
-    if dst_path.suffix == ".md":
-        dst_path = dst_path.with_suffix(".html")
-        dir_path = os.path.dirname(dst_path)
-        if dir_path != "":
-            os.makedirs(dir_path, exist_ok=True)
+    dst_path = pathlib.Path(dst_path).with_suffix(".html")
+    dir_path = os.path.dirname(dst_path)
+    if dir_path != "":
+        os.makedirs(dir_path, exist_ok=True)
     with open(dst_path, "w") as html_f:
         html_f.write(html_contents)
         print("...")

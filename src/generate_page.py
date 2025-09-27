@@ -22,10 +22,10 @@ def generate_page(from_path, template_path, dst_path):
     dst_path = pathlib.Path(dst_path)
     if dst_path.suffix == ".md":
         dst_path = dst_path.with_suffix(".html")
-    with open(dst_path, "w") as html_f:
         dir_path = os.path.dirname(dst_path)
         if dir_path != "":
             os.makedirs(dir_path, exist_ok=True)
+    with open(dst_path, "w") as html_f:
         html_f.write(html_contents)
         print("...")
         print(f"{from_path} successfully written to {dst_path} ")
@@ -33,8 +33,6 @@ def generate_page(from_path, template_path, dst_path):
 def generate_pages_recursive(dir_path_content, template_path, dst_path):
     for path in os.listdir(dir_path_content):
         if os.path.isfile(os.path.join(dir_path_content, path)):
-            if not os.path.exists(dst_path):
-                os.makedirs(dst_path)
             generate_page(
                 os.path.join(dir_path_content, path),
                 template_path, 

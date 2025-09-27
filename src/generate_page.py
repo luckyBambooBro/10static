@@ -1,5 +1,5 @@
 from markdown_to_blocks import markdown_to_html_node
-import os
+import os, pathlib
 
 def extract_title(markdown):
     title = markdown.split("# ")[1]
@@ -19,30 +19,20 @@ def generate_page(from_path, template_path, dst_path):
         "{{ Title }}", extract_title(md_text_str)).replace(
         "{{ Content }}", html_str)
 
-    if from_path.endswith("md"):
-        dst_path = dst_path.replace(".md", ".html")
-        with open(dst_path, "w") as html_f:
-            dir_path = os.path.dirname(dst_path)
-            if dir_path != "":
-                os.makedirs(dir_path, exist_ok=True)
-            html_f.write(html_contents)
-            print("...")
-            print(f"{from_path} successfully written to {dst_path} ")
-
-    else:
-        with open(dst_path, "w") as html_f:
-            dir_path = os.path.dirname(dst_path)
-            if dir_path != "":
-                os.makedirs(dir_path, exist_ok=True)
-            html_f.write(html_contents)
-            print("...")
-            print(f"{from_path} successfully written to {dst_path} ")
-
+    dst_path = pathlib.Path(dst_path)
+    if dst_path.suffix == ".md":
+        dst_path = dst_path.with_suffix(".html")
+    with open(dst_path, "w") as html_f:
+        dir_path = os.path.dirname(dst_path)
+        if dir_path != "":
+            os.makedirs(dir_path, exist_ok=True)
+        html_f.write(html_contents)
+        print("...")
+        print(f"{from_path} successfully written to {dst_path} ")
 
 def generate_pages_recursive(dir_path_content, template_path, dst_path):
     for path in os.listdir(dir_path_content):
         if os.path.isfile(os.path.join(dir_path_content, path)):
-            #TODO unsure if following 2 lines needed
             if not os.path.exists(dst_path):
                 os.makedirs(dst_path)
             generate_page(

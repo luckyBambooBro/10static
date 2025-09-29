@@ -11,7 +11,6 @@ basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
 
 
 if __name__ == "__main__":
-    print(basepath)
     print(f"deleting {dst} directory...")
     if os.path.exists(os.path.abspath(dst)):
         shutil.rmtree(os.path.abspath(dst))
@@ -23,6 +22,7 @@ if __name__ == "__main__":
     generate_pages_recursive(
         dir_path_content, 
         template_path, 
-        dst, basepath)
+        dst, 
+        basepath)
 
 

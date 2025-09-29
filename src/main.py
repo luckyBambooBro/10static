@@ -3,7 +3,7 @@ from copy_static import copy_src_to_dst
 from generate_page import generate_pages_recursive
 
 src = "./static"
-dst = "./public"
+dst = "./docs"
 template_path = "./template.html"
 dir_path_content = "./content"
 basepath = sys.argv[1] if len(sys.argv) > 1 else "/"

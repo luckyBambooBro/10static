@@ -23,6 +23,6 @@ if __name__ == "__main__":
     generate_pages_recursive(
         dir_path_content, 
         template_path, 
-        dst)
+        dst, basepath)
 
 

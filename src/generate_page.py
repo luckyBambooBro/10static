@@ -19,9 +19,9 @@ def generate_page(from_path, template_path, dst_path, basepath):
         html_contents = html_template.replace(
         "{{ Title }}", extract_title(md_text_str)).replace(
         "{{ Content }}", html_str).replace(
-        'href="/', f'href="{basepath}'.replace(
+        'href="/', f'href="{basepath}').replace(
         'src="/', f'src="{basepath}') 
-        )
+        
 
     dst_path = pathlib.Path(dst_path).with_suffix(".html")
     dir_path = os.path.dirname(dst_path)
